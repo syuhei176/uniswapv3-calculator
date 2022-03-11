@@ -150,3 +150,16 @@ export const calculateFee = (
 
   return feeTier * volume24H * liquidityPercentage;
 };
+
+
+export const calculateDeltaAndGamma = (
+  liquidityDelta: bn,
+  P: number,
+  Pl: number,
+  Pu: number
+) => {
+  const delta = liquidityDelta.multipliedBy((1 / Math.sqrt(P) - 1 / Math.sqrt(Pl)))
+  const gamma = liquidityDelta.div(2).multipliedBy(Math.pow(P, -3 / 2)).toNumber() / 1000000000000
+
+  return { delta, gamma }
+};

@@ -9,31 +9,33 @@ export enum AppActionType {
   UPDATE_OUT_OF_RANGE_PERCENTAGE = "UPDATE_OUT_OF_RANGE_PERCENTAGE",
   UPDATE_PRICE_RANGE = "UPDATE_PRICE_RANGE",
   UPDATE_DEPOSIT_AMOUNT = "UPDATE_DEPOSIT_AMOUNT",
+  UPDATE_FUNDING_RATE = "UPDATE_FUNDING_RATE",
   UPDATE_PRICE_ASSUMPTION_VALUE = "UPDATE_PRICE_ASSUMPTION_VALUE",
 }
 export type AppAction =
   | {
-      type: AppActionType.RESET_TOKEN_LIST;
-      payload: {
-        tokenList: V3Token[];
-      };
-    }
+    type: AppActionType.RESET_TOKEN_LIST;
+    payload: {
+      tokenList: V3Token[];
+    };
+  }
   | {
-      type: AppActionType.RESET_PAIR;
-      payload: {
-        pool: Pool;
-        poolTicks: Tick[];
-        token0: V3Token;
-        token1: V3Token;
-        token0PriceChart: PriceChart | null;
-        token1PriceChart: PriceChart | null;
-        volume24H: number;
-      };
-    }
+    type: AppActionType.RESET_PAIR;
+    payload: {
+      pool: Pool;
+      poolTicks: Tick[];
+      token0: V3Token;
+      token1: V3Token;
+      token0PriceChart: PriceChart | null;
+      token1PriceChart: PriceChart | null;
+      volume24H: number;
+    };
+  }
   | { type: AppActionType.SWAP_CURRENT_PAIR }
   | { type: AppActionType.UPDATE_OUT_OF_RANGE_PERCENTAGE; payload: number }
   | { type: AppActionType.UPDATE_PRICE_ASSUMPTION_VALUE; payload: number }
   | { type: AppActionType.UPDATE_PRICE_RANGE; payload: number[] }
+  | { type: AppActionType.UPDATE_FUNDING_RATE; payload: number }
   | { type: AppActionType.UPDATE_DEPOSIT_AMOUNT; payload: number };
 
 export const appReducer = (
@@ -43,6 +45,9 @@ export const appReducer = (
   switch (action.type) {
     case AppActionType.UPDATE_DEPOSIT_AMOUNT: {
       return { ...state, depositAmountValue: action.payload };
+    }
+    case AppActionType.UPDATE_FUNDING_RATE: {
+      return { ...state, fundingRate: action.payload };
     }
     case AppActionType.UPDATE_PRICE_RANGE: {
       return { ...state, priceRangeValue: action.payload };

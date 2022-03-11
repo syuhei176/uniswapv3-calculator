@@ -6,12 +6,14 @@ import { useAppContext } from "../context/app/appContext";
 import { Tick } from "../repos/uniswap";
 import bn from "bignumber.js";
 import {
+  calculateDeltaAndGamma,
   calculateFee,
   getLiquidityForAmounts,
   getSqrtPriceX96,
   getTickFromPrice,
   getTokenAmountsFromDepositAmounts,
 } from "../utils/liquidityMath";
+import { AppActionType } from "../context/app/appReducer";
 
 const SettingContainer = styled.div`
   background: rgba(255, 255, 255, 0.05);
@@ -32,13 +34,34 @@ const Fee = styled.span`
     transform: translateY(2px);
   }
 `;
+
+const Cost = styled.span`
+  display: block;
+  color: white;
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin-top: 2px;
+`;
 const Tag = styled.div`
   display: inline-block;
   color: rgba(255, 255, 255, 0.3);
 `;
 
+const FundingRateInput = styled.input`
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-weight: 600;
+  font-size: 2rem;
+
+  &:focus {
+    outline: none;
+  }
+`;
 const EstimatedFees = () => {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
 
   const calculateLiquidity = (ticks: Tick[], currentTick: number): bn => {
     if (ticks.length <= 1) return new bn(0);
@@ -114,6 +137,14 @@ const EstimatedFees = () => {
   let fee = calculateFee(deltaL, L, volume24H, feeTier);
   if (P < Pl || P > Pu) fee = 0;
 
+  const deltaAndGamma = calculateDeltaAndGamma(deltaL, P,
+    Pl,
+    Pu)
+
+  const requiredSqueeth = deltaAndGamma.gamma * 10000 / 2
+  const fundingRate = state.fundingRate
+  const cost = (P * P / 10000) * fundingRate * requiredSqueeth
+
   return (
     <SettingContainer>
       <Heading>
@@ -134,6 +165,27 @@ const EstimatedFees = () => {
         <div>${(fee * 365).toFixed(2)}</div>
         <div>{((100 * (fee * 365)) / targetAmounts).toFixed(2)}%</div>
       </Table>
+
+      <Heading>Squeeth Funding Rate</Heading>
+
+      <FundingRateInput
+        value={state.fundingRate}
+        type="number"
+        placeholder="0.00"
+        onChange={(e) => {
+          let value = Number(e.target.value);
+          if (value < 0) value = 0;
+
+          dispatch({
+            type: AppActionType.UPDATE_FUNDING_RATE,
+            payload: value,
+          });
+        }}
+      />
+      <Cost>LP Position's Gamma: {(Math.floor(deltaAndGamma.gamma * 100000) / 100000).toString()}</Cost>
+      <Cost>Required Squeeth: {(Math.floor(requiredSqueeth * 100) / 100).toString()}</Cost>
+      <Cost>Funding Cost: ${(Math.floor(cost * 100) / 100).toString()}</Cost>
+
     </SettingContainer>
   );
 };
